@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calorie Counter for Skipping</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: white;
+            color: black;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+        }
+        .calories {
+            font-size: 48px;
+            font-weight: bold;
+        }
+        .real-timer {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .food-fact {
+            margin: 20px 0;
+        }
+        .food-fact img {
+            max-width: 200px;
+            height: auto;
+            transition: opacity 0.5s ease;
+        }
+        .fun-fact {
+            margin-top: 20px;
+            font-style: italic;
+            min-height: 3em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="food-fact">
+            <img id="foodImage" src="../calorie/placeholder.png" alt="Food equivalent">
+            <p id="foodCaption"></p>
+        </div>
+        <div class="calories" id="caloriesBurned">0.000 calories</div>
+        <div class="real-timer" id="realTimer">00:00:00.000</div>
+        <div class="fun-fact" id="funFact"></div>
+    </div>
+
+    <script>
+        let startTime;
+        let running = false;
+        let calorieTimerId;
+        let realTimerId;
+        let currentFoodIndex = 0;
+
+        const foodEquivalents = [
+            { name: "Baby Carrot", calories: 25, image: "../calorie/baby-carrot.png" },
+            { name: "Apple Slice", calories: 50, image: "../calorie/apple-slice.png" },
+            { name: "Hard-Boiled Egg", calories: 75, image: "../calorie/hard-boiled-egg.png" },
+            { name: "Pack of Watermellon Hubba Bubba Gum", calories: 100, image: "../calorie/gum.png" },
+	    { name: "Greek Yogurt Chobani Flip", calories: 150, image: "../calorie/greek-yogurt.png" },
+            { name: "Granola Bar", calories: 200, image: "../calorie/granola-bar.png" },
+            { name: "Chocolate Bar", calories: 230, image: "../calorie/chocolate-bar.png" },
+            { name: "Slice of Pizza", calories: 285, image: "../calorie/pizza-slice.png" },
+            { name: "3 Slices of Brioche French Toast", calories: 390, image: "../calorie/dennys-french-toast.png" },
+            { name: "Large fry from Mcdonalds", calories: 498, image: "../calorie/large-fry-mcdonalds.png" },
+            { name: "Burger King Triple Cheese burger", calories: 563, image: "../calorie/Burger-King-Triple-Cheese-burger.png" },
+            { name: "Cheese Bread", calories: 600, image: "../calorie/600cal-pizza.png" },
+            { name: "Pasta Dish", calories: 800, image: "../calorie/rigatoni-800cal.png" },
+            { name: "Fried Chicken Meal", calories: 900, image: "../calorie/fried-chicken-meal.png" },
+            { name: "Large Milkshake", calories: 1000, image: "../calorie/milkshake.png" },
+            { name: "Movie Theater Popcorn (Large)", calories: 1200, image: "../calorie/movie-popcorn.png" },
+            { name: "Lasagna", calories: 1400, image: "../calorie/lasagna.png" },
+            { name: "Large Pizza", calories: 1600, image: "../calorie/large-pizza.png" },
+            { name: "Thanksgiving Dinner", calories: 2000, image: "../calorie/thanksgiving-dinner.png" }
+        ];
+
+        const funFacts = [
+            "Kanye West's debut album 'The College Dropout' was released in 2004.",
+            "Pixar's 'Toy Story' was the first fully computer-animated feature film.",
+            "Kanye West changed his legal name to 'Ye' in 2021.",
+            "The Pizza Planet truck appears in nearly every Pixar movie.",
+            "Kanye West once worked at Gap before becoming a famous musician.",
+            "Pixar's 'A Bug's Life' was inspired by Aesop's fable 'The Ant and the Grasshopper'.",
+            "Kanye West's mother, Donda West, was a professor of English.",
+            "The Pixar lamp named Luxo Jr. was inspired by one of the animator's desk lamps.",
+            "Kanye West founded the creative content company DONDA in 2012.",
+            "Pixar's 'Up' is the second animated film to be nominated for Best Picture at the Oscars."
+        ];
+
+        function startCounter() {
+            if (!running) {
+                startTime = Date.now();
+                running = true;
+                calorieTimerId = setInterval(updateCalories, 10); // Update every 10ms for smooth display
+                realTimerId = setInterval(updateRealTimer, 10);
+                updateFoodFact(0);
+            }
+        }
+
+        function updateCalories() {
+            const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+            const caloriesBurned = elapsedTime * 0.216;
+            document.getElementById('caloriesBurned').textContent = caloriesBurned.toFixed(3) + ' calories';
+            
+            updateFoodFact(caloriesBurned);
+            
+            if (caloriesBurned >= 1 && Math.floor(caloriesBurned) % 10 === 0) {
+                updateFunFact();
+            }
+        }
+
+        function updateRealTimer() {
+            const elapsedTime = Date.now() - startTime;
+            const formattedTime = formatTime(elapsedTime);
+            document.getElementById('realTimer').textContent = formattedTime;
+        }
+
+        function formatTime(time) {
+            const date = new Date(time);
+            const hours = date.getUTCHours().toString().padStart(2, '0');
+            const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+            const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+            const milliseconds = date.getUTCMilliseconds().toString().padStart(3, '0');
+            return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+        }
+
+        function updateFoodFact(caloriesBurned) {
+            const foodItem = foodEquivalents[currentFoodIndex];
+            const percentage = (caloriesBurned / foodItem.calories) * 100;
+            
+            if (percentage >= 100) {
+                currentFoodIndex = Math.min(currentFoodIndex + 1, foodEquivalents.length - 1);
+                updateFoodFact(caloriesBurned);
+                return;
+            }
+            
+            const opacity = Math.min(percentage / 100, 1);
+            document.getElementById('foodImage').style.opacity = opacity;
+            document.getElementById('foodImage').src = foodItem.image;
+            document.getElementById('foodCaption').textContent = 
+                `${percentage.toFixed(1)}% of a ${foodItem.name} (${foodItem.calories} calories)`;
+        }
+
+        function updateFunFact() {
+            const factIndex = Math.floor(Math.random() * funFacts.length);
+            document.getElementById('funFact').textContent = funFacts[factIndex];
+        }
+
+        // Start the counter when the page loads
+        window.onload = startCounter;
+    </script>
+</body>
+</html>
